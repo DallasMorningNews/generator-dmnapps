@@ -1,0 +1,3 @@
+DB_USER=<aws-user>
+DB_PASS=<aws-password>
+DB_HOST=<aws-host>
