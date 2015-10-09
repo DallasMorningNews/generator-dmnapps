@@ -18,17 +18,17 @@ mkdir your-app-directory
 cd your-app-directory
 ```
 
-Finally, initiate the generator in a new directory for your app.
+Finally, initiate the generator in your app directory.
 
 ```bash
 yo dmnapps
 ```
 
-The generator will set up your working directory, copy template files and scripts, start a `nodemon` server and open your browser.
+The generator will set up your working directory, install dependencies, copy template files and scripts, start a `nodemon` server and open your browser.
 
 This generator use `gulp` to watch your directories for changes, compile scss files and automatically reload your browser.
 
-You can start your server from scratch by typing:
+You can also start your server from scratch in your app's root directory:
 
 ```bash
 gulp
