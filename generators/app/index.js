@@ -16,10 +16,43 @@ module.exports = yeoman.generators.Base.extend({
     var prompts = [{
       name:'appName',
       message: 'What\'s your app\'s name?'
+    },{
+      type: 'checkbox',
+      name: 'features',
+      message: 'What more would you like?',
+      choices: [{
+        name: 'D3',
+        value: 'includeD3',
+        checked: true
+      },{
+        name: 'Leaflet',
+        value: 'includeLeaflet',
+        checked: true
+      },{
+        name: 'FontAwesome',
+        value: 'includeFA',
+        checked: true
+      },{
+        name: 'Bootstrap',
+        value: 'includeBootstrap',
+        checked: true
+      }]
     }];
 
     this.prompt(prompts, function (props) {
+
+      var features = props.features;
+
+      function hasFeature(feat) {
+        return features && features.indexOf(feat) !== -1;
+      };
+
       this.appName = camelCase(props.appName);
+      this.includeD3 = hasFeature('includeD3');
+      this.includeLeaflet = hasFeature('includeLeaflet');
+      this.includeFA = hasFeature('includeFA');
+      this.includeBootstrap = hasFeature('includeBootstrap');
+
       done();
     }.bind(this));
   },
@@ -80,6 +113,43 @@ module.exports = yeoman.generators.Base.extend({
       this.fs.copy(
         this.templatePath('_index.html'),
         this.destinationPath('./templates/index.html')
+      );
+    },
+
+    bower: function () {
+      var bowerJson = {
+        name: this.appName,
+        private: true,
+        dependencies: {}
+      };
+
+      if (this.includeD3) {
+        bowerJson.dependencies['d3'] = '~3.5.6';
+      }
+      if (this.includeLeaflet) {
+        bowerJson.dependencies['leaflet'] = '~1.0.0';
+      }
+      if (this.includeFA) {
+        bowerJson.dependencies['fontawesome'] = '~4.4.0';
+      }
+      if (this.includeBootstrap) {
+          bowerJson.dependencies['bootstrap'] = '~3.3.5';
+          bowerJson.overrides = {
+            'bootstrap': {
+              'main': [
+                'less/bootstrap.less',
+                'dist/css/bootstrap.css',
+                'dist/js/bootstrap.js',
+                'dist/fonts/*'
+              ]
+            }
+          };
+      }
+
+      this.fs.writeJSON('bower.json', bowerJson);
+      this.fs.copy(
+        this.templatePath('bowerrc'),
+        this.destinationPath('.bowerrc')
       );
     },
 

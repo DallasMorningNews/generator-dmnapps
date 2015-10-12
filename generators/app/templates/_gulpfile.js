@@ -1,38 +1,28 @@
 var gulp = require('gulp'),
-	sass = require('gulp-sass'),
-	rename = require('gulp-rename'),
-	opn = require('opn'),
-	nodemon = require('gulp-nodemon'),
-	browserSync = require('browser-sync');
+  browserSync = require('browser-sync'),
+  nodemon = require('gulp-nodemon'),
+  sass = require('gulp-sass'),
+  rename = require('gulp-rename');
 
-
-var BROWSER_SYNC_RELOAD_DELAY = 250;
 
 gulp.task('nodemon', function (cb) {
   var called = false;
   return nodemon({
     script: 'app.js',
-	watch: ['app.js']
+    watch: ['app.js']
   })
     .on('start', function onStart() {
       if (!called) { cb(); }
       called = true;
     })
     .on('restart', function onRestart() {
+      //small reload delay
       setTimeout(function reload() {
         browserSync.reload({
           stream: false
         });
-      }, BROWSER_SYNC_RELOAD_DELAY);
+      }, 500);
     });
-});
-
-gulp.task('browser-sync', ['nodemon'], function () {
-  browserSync({
-	proxy: 'http://localhost:3000',
-	port: 4000,
-	browser: ['google-chrome']
-  });
 });
 
 gulp.task('sass', function () {
@@ -43,17 +33,23 @@ gulp.task('sass', function () {
     .pipe(browserSync.reload({ stream: true }));
 });
 
-var openBrowser = false;
-gulp.task('openbrowser', function() {
-	if(!openBrowser){
-	  opn('http://localhost:4000');
-	  openBrowser = true	
-	}
+gulp.task('browser-sync', ['nodemon'], function () {
+  browserSync({
+    proxy: 'http://localhost:3000',
+    port: 4000,
+    browser: ['google-chrome']
+  });
 });
 
-gulp.task('default', ['sass','browser-sync','openbrowser'], function () {
-  gulp.watch('./static/sass/**/*.scss', ['sass']);
-  gulp.watch('static/**/*.js',   [browserSync.reload]);
-  gulp.watch('static/**/*.css',  [browserSync.reload]);
-  gulp.watch('templates/**/*.html', [browserSync.reload]);
+
+gulp.task('bs-reload', function () {
+  browserSync.reload();
+});
+
+
+gulp.task('default', ['sass','browser-sync'], function () {
+  gulp.watch('static/sass/**/*.scss', ['sass','bs-reload']);
+  gulp.watch('static/**/*.js',   ['bs-reload']);
+  gulp.watch('static/**/*.css',  ['bs-reload']);
+  gulp.watch('templates/**/*.html', ['bs-reload']);
 });
