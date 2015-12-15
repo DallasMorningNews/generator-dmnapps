@@ -1,0 +1,9 @@
+location ~ ^/<%= appURL %>(/.*|$) {
+  alias /var/www/<%= appURL %>/public$1;
+  passenger_base_uri /<%= appURL %>;
+  passenger_app_root /var/www/<%= appURL %>;
+  passenger_document_root /var/www/<%= appURL %>/public;
+  passenger_enabled on;
+  passenger_app_type node;
+  passenger_startup_file app.js;
+}

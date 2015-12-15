@@ -1,0 +1,29 @@
+{
+  "name": "<%= appName %>",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "The Dallas Morning News",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^1.2.0",
+    "express": "^4.13.3",
+    "mysql": "^2.9.0",
+    "nunjucks": "^2.1.0",
+    "orm": "^2.1.27"
+  },
+  "devDependencies": {
+    "browser-sync": "^2.9.10",
+    "gulp": "^3.9.0",
+    "gulp-confirm": "^1.0.4",
+    "gulp-git": "^1.6.0",
+    "gulp-nodemon": "^2.0.4",
+    "gulp-rename": "^1.2.2",
+    "gulp-sass": "^2.0.0",
+    "shelljs": "^0.5.3"
+  }
+}

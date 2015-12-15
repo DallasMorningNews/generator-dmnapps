@@ -5,7 +5,12 @@ var yosay = require('yosay');
 var mkdirp = require('mkdirp');
 var wiredep = require('wiredep');
 var camelCase = require('camel-case');
+var fs = require('fs');
 
+
+// Dependency CDN files
+var optional_cdn = require('./optional_cdn.json');
+var required_cdn = require('./required_cdn.json');
 
 module.exports = yeoman.generators.Base.extend({
   prompting: function () {
@@ -15,27 +20,48 @@ module.exports = yeoman.generators.Base.extend({
 
     var prompts = [{
       name:'appName',
-      message: 'What\'s your app\'s name?'
+      message: 'What\'s your project\'s name?'
+    },{
+      name:'appURL',
+      message: 'What sub-URI will your project live at, e.g.,"top-100"?'
+    },{
+      name:'awsAccessKey',
+      message: 'What\'s your AWS access key?'
+    },{
+      name:'awsSecretKey',
+      message: 'What\'s your AWS secret key?'
     },{
       type: 'checkbox',
       name: 'features',
       message: 'What more would you like?',
       choices: [{
-        name: 'D3',
+        name: 'JQuery UI',
+        value: 'includeJQUI',
+        checked: false
+      },{
+        name: 'JQuery Swipe',
+        value: 'includeJQSwipe',
+        checked: false
+      },{
+        name: 'Bowser',
+        value: 'includeBowser',
+        checked: false
+      },{
+        name: 'Modernizr',
+        value: 'includeModernizr',
+        checked: false
+      },{
+        name: 'D3.js',
         value: 'includeD3',
-        checked: true
+        checked: false
       },{
-        name: 'Leaflet',
+        name: 'Leaflet.js',
         value: 'includeLeaflet',
-        checked: true
-      },{
-        name: 'FontAwesome',
-        value: 'includeFA',
-        checked: true
+        checked: false
       },{
         name: 'Bootstrap',
         value: 'includeBootstrap',
-        checked: true
+        checked: false
       }]
     }];
 
@@ -47,11 +73,19 @@ module.exports = yeoman.generators.Base.extend({
         return features && features.indexOf(feat) !== -1;
       };
 
+      this.projectName = props.appName;
       this.appName = camelCase(props.appName);
-      this.includeD3 = hasFeature('includeD3');
-      this.includeLeaflet = hasFeature('includeLeaflet');
-      this.includeFA = hasFeature('includeFA');
-      this.includeBootstrap = hasFeature('includeBootstrap');
+      this.appURL = props.appURL;
+      this.awsAccessKey = props.awsAccessKey;
+      this.awsSecretKey = props.awsSecretKey;
+      this.dependencies = {};
+      this.dependencies.includeJQUI = hasFeature('includeJQUI');
+      this.dependencies.includeJQSwipe = hasFeature('includeJQSwipe');
+      this.dependencies.includeBowser = hasFeature('includeBowser');
+      this.dependencies.includeModernizr = hasFeature('includeModernizr');
+      this.dependencies.includeD3 = hasFeature('includeD3');
+      this.dependencies.includeLeaflet = hasFeature('includeLeaflet');
+      this.dependencies.includeBootstrap = hasFeature('includeBootstrap');
 
       done();
     }.bind(this));
@@ -61,7 +95,7 @@ module.exports = yeoman.generators.Base.extend({
     app: function () {
       //App files
       this.fs.copyTpl(
-        this.templatePath('_package.json'),
+        this.templatePath('package.json'),
         this.destinationPath('./package.json'),
         { appName: this.appName }
       );
@@ -69,89 +103,150 @@ module.exports = yeoman.generators.Base.extend({
         this.templatePath('env'),
         this.destinationPath('./.env')
       );
-      this.fs.copy(
-        this.templatePath('_app.js'),
-        this.destinationPath('./app.js')
+      this.fs.copyTpl(
+        this.templatePath('app.js'),
+        this.destinationPath('./app.js'),
+        { appURL: this.appURL }
       );
       this.fs.copy(
-        this.templatePath('_gulpfile.js'),
+        this.templatePath('gulpfile.js'),
         this.destinationPath('./gulpfile.js')
+      );
+      this.fs.copy(
+        this.templatePath('nodemon.js'),
+        this.destinationPath('./nodemon.js')
       );
       //Models
       this.fs.copy(
-        this.templatePath('_models.js'),
+        this.templatePath('models/index.js'),
         this.destinationPath('./models/index.js')
       );
       //Routes
       this.fs.copy(
-        this.templatePath('_routes.js'),
+        this.templatePath('routes/index.js'),
         this.destinationPath('./routes/index.js')
       );
       this.fs.copy(
-        this.templatePath('_home.js'),
+        this.templatePath('routes/home.js'),
         this.destinationPath('./routes/home.js')
       );
     },
 
     projectfiles: function () {
-      this.fs.copy(
-        this.templatePath('_theme.css'),
-        this.destinationPath('./static/css/theme.css')
+
+      /////////////////////////////////////////////////
+      // Fetch remote template files from github
+      // hosted in interactives_starterkit
+      
+      // HTML
+      this.fetch('https://raw.githubusercontent.com/DallasMorningNews/interactives_starterkit/master/templates/base.html','./templates/',function(err){
+        if(err){ console.log(err);}
+      });
+      this.fetch('https://raw.githubusercontent.com/DallasMorningNews/interactives_starterkit/master/templates/index.html','./templates/',function(err){
+        if(err){ console.log(err);}
+      });
+      // SCSS
+      this.fetch('https://raw.githubusercontent.com/DallasMorningNews/interactives_starterkit/master/css/theme.scss','./build/sass/',function(err){
+        if(err){ console.log(err);}
+        fs.rename('./build/sass/theme.scss','./build/sass/+base.scss');
+      });
+      this.fetch('https://raw.githubusercontent.com/DallasMorningNews/interactives_starterkit/master/css/_variables.scss','./build/sass/',function(err){
+        if(err){ console.log(err);}
+      });
+      this.fetch('https://raw.githubusercontent.com/DallasMorningNews/interactives_starterkit/master/css/_mixins.scss','./build/sass/',function(err){
+        if(err){ console.log(err);}
+      });
+      // JS
+      this.fetch('https://raw.githubusercontent.com/DallasMorningNews/interactives_starterkit/master/js/customJS.js','./build/js/',function(err){
+        if(err){ console.log(err);}
+        fs.rename('./build/js/customJS.js','./build/js/+custom.js');
+      });
+      // IMG
+      this.fetch('https://raw.githubusercontent.com/DallasMorningNews/interactives_starterkit/master/images/_defaultImage.jpg','./build/images/',function(err){
+        if(err){ console.log(err);}
+      });
+
+      mkdirp('./public');
+
+      // Deploy scripts
+      this.fs.copyTpl(
+        this.templatePath('deploy/nginx'),
+        this.destinationPath('./deploy/nginx'),
+        { appURL: this.appURL }
       );
-      this.fs.copy(
-        this.templatePath('_custom.scss'),
-        this.destinationPath('./static/sass/custom.scss')
+      this.fs.copyTpl(
+        this.templatePath('deploy/pull_prod.sh'),
+        this.destinationPath('./deploy/pull_prod.sh'),
+        { appURL: this.appURL }
       );
-      this.fs.copy(
-        this.templatePath('_custom.js'),
-        this.destinationPath('./static/js/custom.js')
+      this.fs.copyTpl(
+        this.templatePath('deploy/pull_test.sh'),
+        this.destinationPath('./deploy/pull_test.sh'),
+        { appURL: this.appURL }
       );
-      this.fs.copy(
-        this.templatePath('_base.html'),
-        this.destinationPath('./templates/base.html')
+      this.fs.copyTpl(
+        this.templatePath('deploy/send_prod.sh'),
+        this.destinationPath('./deploy/send_prod.sh'),
+        { appURL: this.appURL }
       );
-      this.fs.copy(
-        this.templatePath('_index.html'),
-        this.destinationPath('./templates/index.html')
+      this.fs.copyTpl(
+        this.templatePath('deploy/send_test.sh'),
+        this.destinationPath('./deploy/send_test.sh'),
+        { appURL: this.appURL }
+      );
+      this.fs.copyTpl(
+        this.templatePath('deploy/serve_prod.sh'),
+        this.destinationPath('./deploy/serve_prod.sh'),
+        { appURL: this.appURL }
+      );
+      this.fs.copyTpl(
+        this.templatePath('deploy/serve_test.sh'),
+        this.destinationPath('./deploy/serve_test.sh'),
+        { appURL: this.appURL }
+      );
+      this.fs.copyTpl(
+        this.templatePath('deploy/worker.sh'),
+        this.destinationPath('./deploy/worker.sh'),
+        { appURL: this.appURL }
       );
     },
 
-    bower: function () {
-      var bowerJson = {
-        name: this.appName,
-        private: true,
-        dependencies: {}
-      };
-
-      if (this.includeD3) {
-        bowerJson.dependencies['d3'] = '~3.5.6';
-      }
-      if (this.includeLeaflet) {
-        bowerJson.dependencies['leaflet'] = '~1.0.0';
-      }
-      if (this.includeFA) {
-        bowerJson.dependencies['fontawesome'] = '~4.4.0';
-      }
-      if (this.includeBootstrap) {
-          bowerJson.dependencies['bootstrap'] = '~3.3.5';
-          bowerJson.overrides = {
-            'bootstrap': {
-              'main': [
-                'less/bootstrap.less',
-                'dist/css/bootstrap.css',
-                'dist/js/bootstrap.js',
-                'dist/fonts/*'
-              ]
+    optional_dependencies: function(){
+      // Pass a single url or an array to yeoman's fetch.
+      var dependencyFetch = function(generator, dependency){
+            var dest = './build/vendor';
+            if(Array.isArray(dependency)){
+              for(var i in dependency){
+                generator.fetch(dependency[i], dest, function(err){});
+              };
+            }else{
+              generator.fetch(dependency, dest, function(err){});
             }
           };
-      }
 
-      this.fs.writeJSON('bower.json', bowerJson);
-      this.fs.copy(
-        this.templatePath('bowerrc'),
-        this.destinationPath('.bowerrc')
-      );
+      if(this.dependencies.includeJQUI){
+        dependencyFetch(this, optional_cdn.JQUI);
+      }
+      if(this.dependencies.includeJQSwipe){
+        dependencyFetch(this, optional_cdn.JQSwipe);
+      }
+      if(this.dependencies.includeBowser){
+        dependencyFetch(this, optional_cdn.Bowser);
+      }
+      if(this.dependencies.includeModernizr){
+        dependencyFetch(this, optional_cdn.Modernizr);
+      }
+      if(this.dependencies.includeD3){
+        dependencyFetch(this, optional_cdn.D3);
+      }
+      if(this.dependencies.includeLeaflet){
+        dependencyFetch(this, optional_cdn.Leaflet);
+      }
+      if(this.dependencies.includeBootstrap){
+        dependencyFetch(this, optional_cdn.Bootstrap);
+      }    
     },
+
 
     git: function () {
       this.fs.copy(
@@ -172,6 +267,7 @@ module.exports = yeoman.generators.Base.extend({
     this.on('dependenciesInstalled', function() {
         this.spawnCommand('gulp');
     });
+
   },
 
 });
