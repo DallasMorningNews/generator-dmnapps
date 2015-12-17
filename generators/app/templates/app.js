@@ -10,6 +10,9 @@ var express = require('express'),
 
 var app = express();
 
+// Meta data
+var meta = require('./meta.json');
+
 
 /*-------------------------------------------------------
     DATABASE

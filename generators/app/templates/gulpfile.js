@@ -1,12 +1,20 @@
 var gulp = require('gulp'),
-  browserSync = require('browser-sync'),
-  nodemon = require('gulp-nodemon'),
-  sass = require('gulp-sass'),
-  rename = require('gulp-rename'),
-  git = require('gulp-git'),
-  shell = require('shelljs'),
-  confirm = require('gulp-confirm');
-
+    browserSync = require('browser-sync'),
+    nodemon = require('gulp-nodemon'),
+    git = require('gulp-git'),
+    shell = require('shelljs'),
+    changed = require('gulp-changed'),
+    sass = require('gulp-sass'),
+    minifyCss = require('gulp-minify-css'),
+    imageResize = require('gulp-image-resize'),
+    imagemin = require('gulp-imagemin'),
+    uglify = require('gulp-uglify'),
+    rename = require('gulp-rename'),
+    concat = require('gulp-concat'),
+    confirm = require('gulp-confirm'),
+    watch = require('gulp-watch'),
+    batch = require('gulp-batch'),
+    merge = require('merge-stream');
 
 gulp.task('nodemon', function (cb) {
   var called = false;
@@ -28,20 +36,15 @@ gulp.task('nodemon', function (cb) {
     });
 });
 
-gulp.task('sass', function () {
-  gulp.src('./public/sass/**/*.scss')
-    .pipe(sass().on('error', sass.logError))
-    .pipe(rename({extname: ".css"}))
-    .pipe(gulp.dest('./public/css'))
-    .pipe(browserSync.reload({ stream: true }));
-});
+
 
 gulp.task('browser-sync', ['nodemon'], function () {
   browserSync({
     proxy: 'http://localhost:3000',
     files: ['./public/**/*.*','./templates/**/*.*','!public/**/*.scss'],
     port: 4000,
-    browser: ['google-chrome']
+    browser: ['google-chrome'],
+    startPath: '/<%= appURL %>/'
   });
 });
 
@@ -140,6 +143,12 @@ gulp.task('img',function () {
   return merge(other, copied, s1, s2, s3, s4, s5);
 });
 
+// Video/audio files, CSV data, and miscellany
+gulp.task('assets', function(){
+  return gulp.src('./assets/**/*')
+          .pipe(gulp.dest('./public/assets'));
+});
+
 // Watch for new images added and run img task
 gulp.task('watch', function () {
     watch('./build/images/**/*', batch(function (events, done) {
@@ -147,18 +156,14 @@ gulp.task('watch', function () {
     }));
 });
 
-gulp.task('templates', function () {
-    var meta = require('./meta.json');
-    nunjucksRender.nunjucks.configure(['build/templates/'], {watch: false});
-    return gulp.src(['build/templates/**/*.html','!build/templates/base.html','!build/templates/partials/**/*.html'])
-        .pipe(nunjucksRender(meta))
-        .pipe(gulp.dest('preview'));
-});
 
 
-
-gulp.task('default', ['sass','browser-sync'], function () {
-  gulp.watch('public/**/*.scss', ['sass']);
+gulp.task('default', ['assets','scss','css','js','dependencies','watch','browser-sync'], function () {
+  gulp.watch('build/sass/**/*.scss', ['scss','css']);
+  gulp.watch('build/js/**/*.js*', ['js']);
+  gulp.watch('build/css/**/*.css', ['css']);
+  gulp.watch('build/vendor/**/*.{css,js}', ['dependencies']);
+  gulp.watch('build/assets/**/*', ['assets']);
 });
 
 

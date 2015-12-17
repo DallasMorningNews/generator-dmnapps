@@ -108,9 +108,10 @@ module.exports = yeoman.generators.Base.extend({
         this.destinationPath('./app.js'),
         { appURL: this.appURL }
       );
-      this.fs.copy(
+      this.fs.copyTpl(
         this.templatePath('gulpfile.js'),
-        this.destinationPath('./gulpfile.js')
+        this.destinationPath('./gulpfile.js'),
+        { appURL: this.appURL }
       );
       this.fs.copy(
         this.templatePath('nodemon.js'),
@@ -145,11 +146,19 @@ module.exports = yeoman.generators.Base.extend({
       this.fetch('https://raw.githubusercontent.com/DallasMorningNews/interactives_starterkit/master/templates/index.html','./templates/',function(err){
         if(err){ console.log(err);}
       });
+      this.fs.copy(
+        this.templatePath('img.html'),
+        this.destinationPath('./templates/partials/img.html')
+      );
       // SCSS
       this.fetch('https://raw.githubusercontent.com/DallasMorningNews/interactives_starterkit/master/css/theme.scss','./build/sass/',function(err){
         if(err){ console.log(err);}
         fs.rename('./build/sass/theme.scss','./build/sass/+base.scss');
       });
+      this.fs.copy(
+        this.templatePath('custom.scss'),
+        this.destinationPath('./build/sass/+custom.scss')
+      );
       this.fetch('https://raw.githubusercontent.com/DallasMorningNews/interactives_starterkit/master/css/_variables.scss','./build/sass/',function(err){
         if(err){ console.log(err);}
       });
@@ -166,6 +175,7 @@ module.exports = yeoman.generators.Base.extend({
         if(err){ console.log(err);}
       });
 
+      mkdirp('./build/assets');
       mkdirp('./public');
 
       // Deploy scripts
@@ -247,6 +257,28 @@ module.exports = yeoman.generators.Base.extend({
       }    
     },
 
+    meta: function(){
+      var timestamp = new Date();
+      var metaJson = {
+        name: this.projectName,
+        publishYear: timestamp.getFullYear(),
+        publishDate: timestamp.getFullYear() +"-"+(timestamp.getMonth()+1)+"-"+timestamp.getDate()+"T00:00:00Z",
+        description: '<Project description>',
+        url: 'interactives.dallasnews.com/' + timestamp.getFullYear() +"/"+this.appName.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()+"/",
+        id: (Math.floor(Math.random() * 100000000000) + 1).toString() ,
+        authors: '<Project authors>',
+        authorsFbook: '<Project authors\' facebook links>',
+        desk: '<e.g., entertainment>',
+        section: '<e.g., books>',
+        keywords: ["interactives","dallas","dallas news","dfw news","dallas newspaper","dallas morning news","dallas morning news newspaper"],
+        imgURL: '<Preview image url>',
+        imgWidth: '<Preview image width>',
+        imgHeight: '<Preview image height>',
+        twitter: '<@siteHandle e.g. @dallasnews>',
+        authorTwitter: '<@twitterHandle e.g. @AlanPeppard>'
+      }
+      this.fs.writeJSON('meta.json', metaJson);
+    },
 
     git: function () {
       this.fs.copy(
@@ -265,6 +297,7 @@ module.exports = yeoman.generators.Base.extend({
     });
 
     this.on('dependenciesInstalled', function() {
+        this.spawnCommand('gulp', ['img']);
         this.spawnCommand('gulp');
     });
 
