@@ -138,14 +138,13 @@ module.exports = yeoman.generators.Base.extend({
       /////////////////////////////////////////////////
       // Fetch remote template files from github
       // hosted in interactives_starterkit
-      
+
       // HTML
-      this.fetch('https://raw.githubusercontent.com/DallasMorningNews/interactives_starterkit/master/templates/base.html','./templates/',function(err){
-        if(err){ console.log(err);}
-      });
-      this.fetch('https://raw.githubusercontent.com/DallasMorningNews/interactives_starterkit/master/templates/index.html','./templates/',function(err){
-        if(err){ console.log(err);}
-      });
+      this.fetch('https://raw.githubusercontent.com/DallasMorningNews/interactives_starterkit/master/templates/base.html','./templates/',function(err){});
+      this.fetch('https://raw.githubusercontent.com/DallasMorningNews/interactives_starterkit/master/templates/index.html','./templates/',function(err){});
+      this.fetch('https://raw.githubusercontent.com/DallasMorningNews/interactives_starterkit/master/templates/adblock1.html','./templates/', function(err){});
+      this.fetch('https://raw.githubusercontent.com/DallasMorningNews/interactives_starterkit/master/templates/adblock2.html','./templates/', function(err){});
+      this.fetch('https://raw.githubusercontent.com/DallasMorningNews/interactives_starterkit/master/templates/adblock3.html','./templates/', function(err){});
       this.fs.copy(
         this.templatePath('img.html'),
         this.destinationPath('./templates/partials/img.html')
@@ -254,7 +253,7 @@ module.exports = yeoman.generators.Base.extend({
       }
       if(this.dependencies.includeBootstrap){
         dependencyFetch(this, optional_cdn.Bootstrap);
-      }    
+      }
     },
 
     meta: function(){
